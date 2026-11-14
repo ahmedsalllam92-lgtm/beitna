@@ -878,6 +878,12 @@ body{background:radial-gradient(120% 80% at 15% 0%,#ffffff 0,#fff5ea 45%,#ffe9dc
 .vit:active{transform:scale(.92)}
 .vhand{position:absolute;bottom:42%;font-size:64px;z-index:5;pointer-events:none;animation:vhand 1.6s ease-in-out forwards}
 @keyframes vhand{0%{transform:translateY(60%);opacity:0}25%,75%{transform:translateY(0);opacity:1}100%{transform:translateY(60%);opacity:0}}
+
+/* drawn cartoon heads: no circle, real head shape */
+.face.svgf{overflow:visible;background:none!important;border-radius:0;box-shadow:none!important}
+.face.svgf::after{display:none}
+.face.svgf svg{overflow:visible;filter:drop-shadow(0 .5em .4em rgba(58,36,64,.22))}
+.mini svg,.mav svg,.vface svg,.gface svg{overflow:hidden}
 </style>
 
 </head>
@@ -1130,19 +1136,18 @@ function faceExpr(t,f){const ink='#2b1d1d';
   return `<path d="${brows}" stroke="${ink}" stroke-width="${bw}" fill="none" stroke-linecap="round" opacity=".75"/>${blink?`<g class="eyes" style="animation-delay:-${(Math.random()*5).toFixed(2)}s">${eyes}</g>`:eyes}<path d="M48 62Q50 64 52 62" stroke="#b27a5c" stroke-width="2" fill="none" stroke-linecap="round"/>${mouth}${extra}</svg>`;
 }
 function faceSVG(m){
-  const h=m.hairColor,s=m.skin;let back='',front='';
+  const h=m.hairColor||'#5a3420',s=m.skin,ol='#5b4363',O=`stroke="${ol}" stroke-width="2.4" stroke-linejoin="round"`;let back='',front='',ears=true;
   switch(m.hair){
-    case 'short':back=`<circle cx="15" cy="58" r="7" fill="${s}"/><circle cx="85" cy="58" r="7" fill="${s}"/>`;front=`<path d="M15 50C12 14 88 14 85 50C80 32 64 25 50 27C36 25 21 32 15 50Z" fill="${h}"/>`;break;
-    case 'long':back=`<path d="M12 52C8 8 92 8 88 52L92 100H8Z" fill="${h}"/>`;front=`<path d="M16 50C16 18 84 18 84 50C76 36 66 30 54 32C44 40 30 44 16 50Z" fill="${h}"/>`;break;
-    case 'hijab':back=`<circle cx="50" cy="54" r="47" fill="${h}"/><path d="M8 80Q50 112 92 80L100 100H0Z" fill="${h}"/>`;front=`<path d="M17 52C17 20 83 20 83 52C80 34 66 26 50 26C34 26 20 34 17 52Z" fill="${h}" opacity=".9"/>`;break;
-    case 'pigtails':back=`<circle cx="12" cy="40" r="13" fill="${h}"/><circle cx="88" cy="40" r="13" fill="${h}"/>`;front=`<path d="M16 50C14 16 86 16 84 50C78 34 64 28 50 30C36 28 22 34 16 50Z" fill="${h}"/><circle cx="12" cy="40" r="4" fill="#ff7a6b"/><circle cx="88" cy="40" r="4" fill="#ff7a6b"/>`;break;
-    case 'pretty':back=`<path d="M8 50C4 4 96 4 92 50C95 66 99 80 94 100H6C1 80 5 66 8 50Z" fill="${h}"/><path d="M10 70Q4 86 12 100M90 70Q96 86 88 100" stroke="${shade(h,1.35)}" stroke-width="3" fill="none" opacity=".6"/>`;
-      front=`<path d="M15 54C10 14 90 12 86 52C80 36 68 28 56 30C50 40 36 44 26 42C22 46 18 50 15 54Z" fill="${h}"/><path d="M30 22Q46 14 64 20" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" opacity=".45"/><path d="M60 32Q72 36 80 46" stroke="${shade(h,1.4)}" stroke-width="2.5" fill="none" opacity=".7"/>
-      <g transform="translate(22 26) rotate(-20)"><path d="M0 0L-11-8V8ZM0 0L11-8V8Z" fill="#ff5fa2" stroke="#3a2440" stroke-width="1.6" stroke-linejoin="round"/><circle r="3.6" fill="#ff8fc7" stroke="#3a2440" stroke-width="1.6"/></g>`;break;
-    case 'curly':front=[18,30,42,54,66,78].map((x,i)=>`<circle cx="${x+2}" cy="${i%2?24:30}" r="12" fill="${h}"/>`).join('')+`<circle cx="15" cy="44" r="9" fill="${h}"/><circle cx="85" cy="44" r="9" fill="${h}"/>`;break;
+    case 'short':front=`<path d="M15 58C10 17 90 17 85 58C82 44 74 34 62 31C54 38 40 38 30 34C22 40 18 48 15 58Z" fill="${h}" ${O}/>`;break;
+    case 'curly':front=[[24,36,13],[37,25,14],[53,21,14],[68,25,13],[80,37,12],[18,50,10],[84,52,10]].map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${h}" ${O}/>`).join('')+`<path d="M18 52Q50 28 84 52Q70 40 50 40Q30 40 18 52Z" fill="${h}"/>`;break;
+    case 'long':ears=false;back=`<path d="M10 58C6 11 94 11 90 58L94 98Q50 108 6 98Z" fill="${h}" ${O}/>`;front=`<path d="M16 57C13 19 87 19 84 57C80 41 68 32 56 33C48 42 32 48 16 57Z" fill="${h}" ${O}/>`;break;
+    case 'pretty':ears=false;back=`<path d="M9 58C4 9 96 9 91 58C95 72 98 86 92 100Q86 108 78 102Q72 110 62 104Q50 112 38 104Q28 110 22 102Q14 108 8 100C2 86 5 72 9 58Z" fill="${h}" ${O}/>`;
+      front=`<path d="M15 58C10 15 90 13 86 55C80 38 68 30 56 31C50 42 34 47 24 45C20 49 17 53 15 58Z" fill="${h}" ${O}/><g transform="translate(23 25) rotate(-20)"><path d="M0 0L-11-8V8ZM0 0L11-8V8Z" fill="#ff5fa2" stroke="${ol}" stroke-width="1.6" stroke-linejoin="round"/><circle r="3.6" fill="#ff8fc7" stroke="${ol}" stroke-width="1.6"/></g>`;break;
+    case 'pigtails':back=`<circle cx="10" cy="45" r="13" fill="${h}" ${O}/><circle cx="90" cy="45" r="13" fill="${h}" ${O}/>`;front=`<path d="M16 57C12 18 88 18 84 57C78 41 66 32 52 33C40 32 24 40 16 57Z" fill="${h}" ${O}/><circle cx="18" cy="40" r="4" fill="#ff7a6b" stroke="${ol}" stroke-width="1.4"/><circle cx="82" cy="40" r="4" fill="#ff7a6b" stroke="${ol}" stroke-width="1.4"/>`;break;
+    case 'hijab':ears=false;back=`<path d="M8 60C4 5 96 5 92 60C94 80 98 96 96 108Q50 120 4 108C2 96 6 80 8 60Z" fill="${h}" ${O}/>`;front=`<path d="M19 58C19 23 81 23 81 58" fill="none" stroke="${shade(h,.8)}" stroke-width="4"/>`;break;
   }
-  const r=m.hair==='hijab'?32:34;
-  return `<svg viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="fsk" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset=".55" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#7a4a3a" stop-opacity=".18"/></radialGradient></defs>${back}<circle cx="50" cy="56" r="${r}" fill="${s}"/><circle cx="50" cy="56" r="${r}" fill="url(#fsk)"/>${front}${m.hair!=='hijab'?'<path d="M30 31Q44 21 62 25" stroke="#fff" stroke-width="3.5" opacity=".3" fill="none" stroke-linecap="round"/>':''}
+  const hx=m.hair==='hijab'?30:34,hy=m.hair==='hijab'?33:36;
+  return `<svg viewBox="0 0 100 100" overflow="visible" aria-hidden="true"><defs><radialGradient id="fsk" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="#fff" stop-opacity=".38"/><stop offset=".55" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#7a4a3a" stop-opacity=".2"/></radialGradient></defs>${back}${ears?`<ellipse cx="18" cy="61" rx="4.6" ry="6" fill="${s}" ${O}/><ellipse cx="82" cy="61" rx="4.6" ry="6" fill="${s}" ${O}/><circle cx="18" cy="61" r="2" fill="#000" opacity=".1"/><circle cx="82" cy="61" r="2" fill="#000" opacity=".1"/>`:''}<ellipse cx="50" cy="57" rx="${hx}" ry="${hy}" fill="${s}" ${O}/><ellipse cx="50" cy="57" rx="${hx}" ry="${hy}" fill="url(#fsk)"/><ellipse cx="30" cy="67" rx="6.5" ry="3.8" fill="#ff7b8a" opacity=".35"/><ellipse cx="70" cy="67" rx="6.5" ry="3.8" fill="#ff7b8a" opacity=".35"/>${front}${m.hair!=='hijab'?'<path d="M30 30Q44 21 62 25" stroke="#fff" stroke-width="3.5" opacity=".35" fill="none" stroke-linecap="round"/>':''}
   ${faceExpr(moodOf(m),fem(m))}`;
 }
 const faceHTML=m=>m.photo?`<img src="${m.photo}" alt="">`:faceSVG(m);
@@ -1179,12 +1184,12 @@ const BACKS={cape:c=>`<svg class="back cape" viewBox="0 0 100 110" aria-hidden="
 function hairBack(m){const h=m.hairColor||'#6b3a1f';return `<svg class="hairback" viewBox="0 0 120 130" aria-hidden="true"><path d="M14 52C8 0 112 0 106 52C112 76 118 100 108 126Q84 116 60 122Q36 116 12 126C2 100 8 76 14 52Z" fill="${h}" stroke="#3a2440" stroke-width="2.5"/><path d="M18 80Q10 100 18 120M102 80Q110 100 102 120M30 90Q26 106 32 118M90 90Q94 106 88 118" stroke="${shade(h,1.4)}" stroke-width="3" fill="none" opacity=".7"/></svg>`}
 function figHTML(m){
   const hc=m.hand==='🪁'?' high kite':(m.hand==='🎈'?' high':'');
-  return `${(m.photo&&m.prettyHair)||(!m.photo&&(m.hair==='long'||m.hair==='pretty'))?hairBack(m):''}${m.back&&BACKS[m.back]?BACKS[m.back]():''}<div class="head">${m.photo&&m.prettyHair?'<span class="bow">🎀</span>':''}${showEars(m)?`<span class="ear l" style="--sk:${m.skin}"></span><span class="ear r" style="--sk:${m.skin}"></span>`:''}<div class="face">${faceHTML(m)}${moodOverlay(m)}${m.makeup&&!male(m)?'<span class="mk"></span>':''}</div>${moodBadge(m)}${m.glasses?`<span class="acc glasses"><i>${m.glasses}</i></span>`:''}${m.hat?`<span class="acc hat"><i>${m.hat}</i></span>`:''}</div>${bodySVG(m)}${moodBody(m)}${m.hand?`<span class="hand${hc}"><i>${m.hand}</i></span>`:''}`;
+  return `${(m.photo&&m.prettyHair)||(!m.photo&&(m.hair==='long'||m.hair==='pretty'))?hairBack(m):''}${m.back&&BACKS[m.back]?BACKS[m.back]():''}<div class="head">${m.photo&&m.prettyHair?'<span class="bow">🎀</span>':''}${showEars(m)?`<span class="ear l" style="--sk:${m.skin}"></span><span class="ear r" style="--sk:${m.skin}"></span>`:''}<div class="face${m.photo?'':' svgf'}">${faceHTML(m)}${moodOverlay(m)}${m.makeup&&!male(m)?'<span class="mk"></span>':''}</div>${moodBadge(m)}${m.glasses?`<span class="acc glasses"><i>${m.glasses}</i></span>`:''}${m.hat?`<span class="acc hat"><i>${m.hat}</i></span>`:''}</div>${bodySVG(m)}${moodBody(m)}${m.hand?`<span class="hand${hc}"><i>${m.hand}</i></span>`:''}`;
 }
 const tee=c=>`<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M13 5L4 11l4 8 4-2v18h16V17l4 2 4-8-9-6c-1 3-4 5-7 5s-6-2-7-5z" fill="${c}" stroke="#3a2440" stroke-width="2.4" stroke-linejoin="round"/></svg>`;
 
 /* ================= illustrated pieces (vector art with light and shade) ================= */
-function showEars(m){return !(m.hair==='long'||m.hair==='hijab'||m.hair==='pretty'||m.prettyHair)||m.id==='dad'}
+function showEars(m){return !!m.photo&&!(m.hair==='long'||m.hair==='hijab'||m.hair==='pretty'||m.prettyHair)||m.id==='dad'}
 const gid=(()=>{let n=0;return p=>p+(++n)})();
 const ART={
  view(){return `<svg viewBox="0 0 100 60" preserveAspectRatio="none"><path d="M0 40Q20 22 42 34T80 28T100 30V60H0Z" fill="#9fd88a"/><path d="M0 48Q30 36 55 46T100 42V60H0Z" fill="#7cc66a"/><circle cx="78" cy="38" r="7" fill="#4f9e4a"/><rect x="77" y="42" width="2" height="8" fill="#7a5233"/><circle cx="24" cy="44" r="5" fill="#5aad53"/></svg>`},
