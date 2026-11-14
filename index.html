@@ -884,6 +884,16 @@ body{background:radial-gradient(120% 80% at 15% 0%,#ffffff 0,#fff5ea 45%,#ffe9dc
 .face.svgf::after{display:none}
 .face.svgf svg{overflow:visible;filter:drop-shadow(0 .5em .4em rgba(58,36,64,.22))}
 .mini svg,.mav svg,.vface svg,.gface svg{overflow:hidden}
+
+.tbtn.inst{background:linear-gradient(#c9f2ff,#7fd3f5)!important;animation:pulse 1.8s ease-in-out infinite}
+.instbox{position:fixed;inset:0;z-index:5000;background:rgba(40,25,50,.55);display:grid;place-items:center;direction:rtl;padding:16px}
+.instbox .ib{background:#fff;border-radius:28px;padding:20px 18px;max-width:380px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.3);display:flex;flex-direction:column;gap:12px;text-align:center}
+.instbox h3{margin:0;font-family:var(--f-display);font-weight:400;font-size:26px;color:var(--plum)}
+.instbox ol{margin:0;padding:0 22px 0 0;text-align:right;display:flex;flex-direction:column;gap:10px;font-weight:700;font-size:16px;line-height:1.5}
+.instbox .ic2{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:8px;background:#eef4ff;vertical-align:middle;margin:0 4px}
+.instbox .arrow{font-size:40px;animation:tapme 1s ease-in-out infinite}
+.dctl,.dctl *,.garea,.garea *,.tray,.tray *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}
+.dctl button{touch-action:none!important}
 </style>
 
 </head>
@@ -895,6 +905,7 @@ body{background:radial-gradient(120% 80% at 15% 0%,#ffffff 0,#fff5ea 45%,#ffe9dc
     <button class="tbtn grn" id="drawBtn" type="button">🎨<b> نرسم</b></button>
     <button class="tbtn main" id="famBtn" type="button">📸<b> العيلة</b></button>
     <button class="tbtn" id="musBtn" type="button" aria-label="المزيكا">🎵</button>
+    <button class="tbtn inst" id="instBtn" type="button" hidden>📲<b> ثبّت التطبيق</b></button>
     <button class="tbtn" id="sndBtn" type="button" aria-label="الصوت">🔊</button>
   </header>
 
@@ -1010,18 +1021,19 @@ function fresh(d){return Object.assign({photo:null,hat:null,glasses:null,hand:nu
 function load(){
   let d=null;try{d=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){}
   if(d&&Array.isArray(d.members)&&d.members.length){
-    S.members=d.members.map(m=>Object.assign(fresh(m),{state:null,tummy:0}));
+    S.members=d.members.map(m=>Object.assign(fresh(m),{state:['sleep','bath','sit'].includes(m.state)?m.state:null,tummy:0}));
     S.night=!!d.night;S.sound=d.sound!==false;S.seen=!!d.seen;S.room=d.room||'living';
-    S.art=Array.isArray(d.art)?d.art:[];S.flowers=Array.isArray(d.flowers)?d.flowers:[];S.stars=d.stars||0;S.pets=Array.isArray(d.pets)?d.pets:[];S.walls=d.walls||{};S.music=!!d.music;S.autoScen=d.autoScen!==false;
+    S.art=Array.isArray(d.art)?d.art:[];S.flowers=Array.isArray(d.flowers)?d.flowers:[];S.stars=d.stars||0;S.pets=Array.isArray(d.pets)?d.pets:[];S.walls=d.walls||{};S.music=!!d.music;S.sel=d.sel||null;S.tvOn=!!d.tvOn;S.toys=Array.isArray(d.toys)?d.toys:[];S.lego=d.lego||0;S.autoScen=d.autoScen!==false;
     {const k=S.members.find(m=>m.id==='kid');if(k&&!d.diala){if(k.name==='أنا')k.name='ديالا';k.hair='pretty';k.prettyHair=true;if(k.hairColor==='#4a2a1a')k.hairColor='#6b3a1f'}}
   }else S.members=DEFAULTS.map(fresh);
   S.members.forEach(m=>{m.y=clamp(m.y,FY0,FY1);if(!m.gender&&m.id==='dad')m.gender='m';if(!m.gender&&(m.id==='mom'||m.id==='kid'))m.gender='f';if(male(m)){if(m.outfit==='dress')m.outfit='pants';if(m.pat==='hearts')m.pat=null;if(m.hat==='🎀'||m.hat==='👒')m.hat=null;m.makeup=false}});
 }
 let saveT=0;
-function save(){clearTimeout(saveT);saveT=setTimeout(()=>{
-  try{localStorage.setItem(KEY,JSON.stringify({members:S.members.map(({state,tummy,...m})=>m),night:S.night,sound:S.sound,seen:S.seen,room:S.room,art:S.art,flowers:S.flowers,stars:S.stars||0,pets:S.pets||[],walls:S.walls||{},music:!!S.music,diala:1,autoScen:S.autoScen!==false}))}
+function save(now){clearTimeout(saveT);if(now===true){saveNow();return}saveT=setTimeout(saveNow,250)}
+function saveNow(){{
+  try{localStorage.setItem(KEY,JSON.stringify({members:S.members.map(({tummy,_band,...m})=>Object.assign(m,{state:['sleep','bath','sit'].includes(m.state)?m.state:null})),night:S.night,sound:S.sound,seen:S.seen,room:S.room,art:S.art,flowers:S.flowers,sel:S.sel,tvOn:!!S.tvOn,toys:props.filter(p=>p.type==='toy').map(p=>({e:p.toy[0],x:+p.x.toFixed(1),y:+p.y.toFixed(1)})).concat(S.room==='kids'?[]:(S.toys||[])),lego:S.lego||0,stars:S.stars||0,pets:S.pets||[],walls:S.walls||{},music:!!S.music,diala:1,autoScen:S.autoScen!==false}))}
   catch(e){toast('المساحة على الجهاز خلصت، شيلوا رسمة قديمة عشان نقدر نحفظ')}
-},250)}
+}}
 const M=id=>S.members.find(m=>m.id===id);
 const inRoom=()=>S.members.filter(m=>m.room===S.room);
 
@@ -1390,10 +1402,11 @@ function stageClass(){stage.className='stage r-'+S.room+(S.night?' night':'')+(S
 function renderRoom(){
   S.meal=false;$('#joy').hidden=false;
   stageClass();roomEl.innerHTML=R(S.room).html()+S.art.filter(a=>a.room===S.room).map(artHTML).join('');
-  RT.forEach(rt=>rt.timers.forEach(clearTimeout));RT.clear();charsEl.innerHTML='';clearProps();
+  RT.forEach(rt=>rt.timers.forEach(clearTimeout));RT.clear();charsEl.innerHTML='';{const tl=props.filter(p=>p.type==='toy'&&p.toy);if(tl.length)S.toys=tl.map(p=>({e:p.toy[0],x:+p.x.toFixed(1),y:+p.y.toFixed(1)}))}clearProps();
   const here=inRoom();
-  if(!here.some(m=>m.id===S.sel))S.sel=here[0]?here[0].id:S.sel;
-  here.forEach(m=>makeChar(m));
+  if(!here.some(m=>m.id===S.sel))S.sel=here[0]?here[0].id:S.sel;save();
+  here.forEach(m=>{makeChar(m);if(m.state==='bath'){const rt=RT.get(m.id);if(rt){rt.z=90;pos(m)}}});
+  if(S.room==='kids'){(S.toys||[]).forEach(t=>{const T=TOYS.find(x=>x[0]===t.e);if(!T)return;const p=addProp('toy',t.x,t.y,`<i style="font-size:${U(8)}">${T[0]}</i><span class="ps" style="font-size:${U(8)}"></span>`);p.toy=T});S.toys=[];const st=roomEl.querySelector('#lego');if(st)for(let k=0;k<(S.lego||0);k++){const c=LEGOC[k%LEGOC.length],b=document.createElement('i');b.style.setProperty('--lc',c[0]);b.style.animation='none';st.appendChild(b)}}
   renderDock();
 }
 function makeChar(m,fromX){
@@ -1410,7 +1423,7 @@ function makeChar(m,fromX){
 function pos(m){const rt=RT.get(m.id);if(!rt)return;const el=rt.el;el.style.left=m.x+'%';el.style.top=m.y+'%';el.style.setProperty('--dp',m.state?1:(.86+.2*clamp((m.y-FY0)/(FY1-FY0),0,1)).toFixed(3));el.style.zIndex=rt.z??(10+Math.round(m.y));el.classList.toggle('sel',m.id===S.sel)}
 function refreshChar(m){const rt=RT.get(m.id);if(!rt)return;rt.el.querySelector('.fig').innerHTML=figHTML(m);rt.el.querySelector('.tag').textContent=m.name;rt.el.style.setProperty('--k',m.size==='small'?.74:1)}
 function paintState(m){const rt=RT.get(m.id);if(!rt)return;['sleep','bath','sit','swing','meal','vsit'].forEach(s=>rt.el.classList.toggle(s,m.state===s))}
-function select(id){S.sel=id;S.members.forEach(pos);renderStrip();joyKnob()}
+function select(id){S.sel=id;save();S.members.forEach(pos);renderStrip();joyKnob()}
 function setWalking(m,on){const rt=RT.get(m.id);if(rt)rt.el.classList.toggle('walking',on)}
 function walkTo(m,x,y,cb){const rt=RT.get(m.id);if(!rt)return;if(m.state)leaveSpot(m);rt.tx=clamp(x,6,94);rt.ty=clamp(y,FY0,FY1);rt.cb=cb||null;setWalking(m,true)}
 function later(m,ms,fn){const rt=RT.get(m.id);if(!rt)return;const t=setTimeout(()=>{rt.timers=rt.timers.filter(x=>x!==t);fn()},ms);rt.timers.push(t)}
@@ -1460,7 +1473,7 @@ let props=[];
 function clearProps(){props.forEach(p=>p.el.remove());props=[]}
 function addProp(type,x,y,html,cls=''){const el=document.createElement('div');el.className='prop '+type+' '+cls;el.innerHTML=html;charsEl.appendChild(el);const p={type,el,x,y,h:0,vh:0,vx:0,vy:0,rot:0};props.push(p);placeProp(p);return p}
 function placeProp(p){p.el.style.left=p.x+'%';p.el.style.top=p.y+'%';p.el.style.zIndex=10+Math.round(p.y);if(p.inner)p.inner.style.transform=`translateY(${-p.h}px) rotate(${p.rot}deg)`}
-function removeProp(p){p.el.remove();props=props.filter(x=>x!==p)}
+function removeProp(p){setTimeout(()=>save(),0);p.el.remove();props=props.filter(x=>x!==p)}
 function getBall(m){let b=props.find(p=>p.type==='ball');if(!b){b=addProp('ball',m.x+3,clamp(m.y+1,FY0,FY1+3),`<i style="font-size:${U(7)}">⚽</i><span class="ps" style="font-size:${U(7)}"></span>`);b.inner=b.el.querySelector('i')}return b}
 function kickBall(m,b){
   const rt=RT.get(m.id);anim(m,'kick',500);SFX.kick();
@@ -1671,7 +1684,7 @@ function furnTap(el){
   const t=el.dataset.tap,s=sr(),r=el.getBoundingClientRect(),cx=r.left+r.width/2-s.left,cy=r.top+r.height/2-s.top;
   el.classList.remove('boop');void el.offsetWidth;el.classList.add('boop');
   switch(t){
-    case 'tv':S.tvOn=!S.tvOn;stageClass();if(S.tvOn){toast('📺 التلفزيون اشتغل.. الكل يرقص!');musicLoop()}else SFX.pop();break;
+    case 'tv':S.tvOn=!S.tvOn;stageClass();save();if(S.tvOn){toast('📺 التلفزيون اشتغل.. الكل يرقص!');musicLoop()}else SFX.pop();break;
     case 'night':S.night=!S.night;stageClass();save();if(!S.night)inRoom().forEach(x=>autoResolve(x,'light'));SFX.whoosh();toast(S.night?'🌙 بقينا بالليل.. وقت النوم':'☀️ صباح الخير!');if(!S.night)inRoom().forEach(m=>{if(m.state==='sleep')wake(m)});break;
     case 'fridge':el.classList.toggle('open');tone(110,.4,{type:'sawtooth',vol:.04});break;
     case 'wardrobe':el.classList.toggle('open');SFX.whoosh();if(el.classList.contains('open'))toast('👇 اختاري لبس من تحت');break;
@@ -1822,7 +1835,7 @@ window.addEventListener('keyup',e=>{if(!KM[e.key])return;KEYS[e.key]=0;keyJoy()}
 /* ================= dock ================= */
 const RSP={living:'الصالة',kitchen:'المطبخ',bedroom:'غرفة النوم',bath:'الحمام',garden:'الحديقة',get kids(){return 'غرفة '+kidName()}};
 $('#tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b||b.dataset.room===S.room)return;ac();SFX.pop();speak(RSP[b.dataset.room],1);const fol=M(S.sel);
-  S.members.forEach(m=>{if(m.room===S.room){m.state=null;m.y=clamp(m.y,FY0,FY1)}});S.room=b.dataset.room;save();renderRoom();if(fol&&fol.room!==S.room)setTimeout(()=>bring(fol),250)});
+  S.members.forEach(m=>{if(m.room===S.room&&!['sleep','bath','sit'].includes(m.state)){m.state=null;m.y=clamp(m.y,FY0,FY1)}});S.room=b.dataset.room;save();renderRoom();if(fol&&fol.room!==S.room)setTimeout(()=>bring(fol),250)});
 $('#strip').addEventListener('click',e=>{const b=e.target.closest('.chipm');if(!b)return;ac();
   if(b.dataset.all){S.members.filter(m=>m.room!==S.room).forEach((m,i)=>setTimeout(()=>bring(m),i*350));return}
   const m=M(b.dataset.id);if(m.room===S.room){select(m.id);touch(m);anim(m,'wave',1400);SFX.pop();say(m,'أنا هنا أهو! 👋')}else bring(m)});
@@ -2368,8 +2381,8 @@ function kidsTap(t,el,cx,cy){const s=sr();
     let m=here.find(x=>x.id===S.sel)||here[0];
     if(male(m)){say(m,'دي تسريحة ديالا! 😄');anim(m,'nope',1100);SFX.boop();const g=here.find(x=>!male(x)&&x.id==='kid')||here.find(x=>!male(x));if(!g)return;m=g;select(m.id)}
     sitVanity(m,el);return}
-  if(t==='lego'){const st=el.querySelector('#lego');if(!st)return;if(st.children.length>=6){st.classList.add('fall');SFX.crash();setTimeout(()=>{st.classList.remove('fall');st.innerHTML=''},750);spawn('طاخ! 😂',cx,cy-60,{dy:-40,dx:0,size:22,dur:1300});inRoom().forEach(m=>later(m,300,()=>anim(m,'giggle',800)));return}
-    const c=LEGOC[st.children.length%LEGOC.length];const b=document.createElement('i');b.style.setProperty('--lc',c[0]);st.appendChild(b);SFX.pop2();speak(c[1],1);if(st.children.length===6){setTimeout(()=>{speak('ستةُ مكعبات! برجٌ عالٍ',1);SFX.yay();addStar()},700)}}}
+  if(t==='lego'){const st=el.querySelector('#lego');if(!st)return;if(st.children.length>=6){st.classList.add('fall');SFX.crash();setTimeout(()=>{st.classList.remove('fall');st.innerHTML='';S.lego=0;save()},750);spawn('طاخ! 😂',cx,cy-60,{dy:-40,dx:0,size:22,dur:1300});inRoom().forEach(m=>later(m,300,()=>anim(m,'giggle',800)));return}
+    const c=LEGOC[st.children.length%LEGOC.length];const b=document.createElement('i');b.style.setProperty('--lc',c[0]);st.appendChild(b);S.lego=st.children.length;save();SFX.pop2();speak(c[1],1);if(st.children.length===6){setTimeout(()=>{speak('ستةُ مكعبات! برجٌ عالٍ',1);SFX.yay();addStar()},700)}}}
 function toyTap(el){const p=props.find(x=>x.el===el);if(!p||!p.toy)return;el.classList.remove('boing');void el.offsetWidth;el.classList.add('boing');SFX[p.toy[2]]();speak(p.toy[1],1);
   const m=M(S.sel);if(m&&m.room===S.room&&!m.state){walkTo(m,p.x+(m.x<p.x?-5:5),p.y-1,()=>{anim(m,'happy',700);say(m,'بحب اللعبة دي! 😍')})}}
 function tidyToys(){const toys=props.filter(p=>p.type==='toy');if(!toys.length){toast('مفيش لعب برة 🙂 دوسي على الرفوف');return}
@@ -2407,7 +2420,8 @@ function gTrip(A){
     const coach=(key,icon,txt,sp,cls='')=>{if(coachKey===key)return;coachKey=key;coachEl.className='coach '+cls;void coachEl.offsetWidth;coachEl.classList.add('pop');coachEl.querySelector('i').textContent=icon;coachEl.querySelector('span').textContent=txt;if(sp)speak(sp,1)};
     const ctl=document.createElement('div');ctl.className='dctl';A.appendChild(ctl);ctl.innerHTML='<button type="button" class="lup"><span>⬆️</span></button><button type="button" class="ldn"><span>⬇️</span></button><button type="button" class="hrn"><span>📯</span></button><button type="button" class="brk"><span>🛑</span><small>فرامل</small></button><button type="button" class="gas"><span>🟢</span><small>بنزين</small></button>';
     const B=k=>ctl.querySelector('.'+k);let gas=false,brk=false,lane=0;
-    const hold=(el,set)=>{const on=e=>{e.preventDefault();ac();el.classList.add('down');set(true)},off=()=>{el.classList.remove('down');set(false)};el.addEventListener('pointerdown',on);['pointerup','pointercancel','pointerleave'].forEach(ev=>el.addEventListener(ev,off))};
+    const hold=(el,set)=>{let dn=false;const on=e=>{if(e.cancelable)e.preventDefault();if(dn)return;dn=true;ac();try{if(e.pointerId!=null)el.setPointerCapture(e.pointerId)}catch(_){}el.classList.add('down');set(true)},off=()=>{if(!dn)return;dn=false;el.classList.remove('down');set(false)};
+      el.addEventListener('pointerdown',on);el.addEventListener('touchstart',on,{passive:false});['pointerup','pointercancel','touchend','touchcancel','lostpointercapture'].forEach(ev=>el.addEventListener(ev,off));el.addEventListener('contextmenu',e=>e.preventDefault());el.addEventListener('selectstart',e=>e.preventDefault())};
     hold(B('gas'),v=>{gas=v;if(v)SFX.vroom()});hold(B('brk'),v=>{brk=v});
     const setLane=l=>{if(l===lane)return;lane=l;car.style.bottom=lane?'15%':'2%';car.style.zIndex=lane?4:6;car.style.transform=`scale(${lane?.9:1})`;SFX.whoosh()};setLane(0);car.style.bottom='2%';car.style.zIndex=6;
     B('lup').onclick=()=>setLane(1);B('ldn').onclick=()=>setLane(0);
@@ -2568,6 +2582,24 @@ function autoLife(m,tvOnly){const q=sel=>roomEl.querySelector(sel),R0=S.room;con
   if(R0==='garden'){opts.push(()=>nearEl(m,q('[data-obj="flower"]'),()=>{anim(m,'squat',900);hearts(m);say(m,'الوردة ريحتها حلوة 🌷')}));opts.push(()=>{const d=q('[data-tap="dog"]');nearEl(m,d,()=>{if(!d)return;d.classList.remove('jump');void d.offsetWidth;d.classList.add('jump');SFX.bark();hearts(m);say(m,'كلب شاطر 🐶')},-8)});if(!inRoom().some(x=>x.state==='swing'))opts.push(()=>spotUse(m,q('#swing'),'swing'))}
   if(R0==='kids'){opts.push(()=>{const t=q('.ktable');nearEl(m,t,()=>{if(t){const s=sr(),r=t.getBoundingClientRect();kidsTap('lego',t,r.left+r.width/2-s.left,r.top-s.top)}},6)});opts.push(()=>{const t=q('.tile[data-l="'+Math.floor(rnd(0,28))+'"]');if(t){const s=sr(),r=t.getBoundingClientRect();walkTo(m,(r.left+r.width/2-s.left)/s.width*100,Math.max((r.top+r.height/2-s.top)/s.height*100,FY0+2),()=>{t.classList.remove('lit');void t.offsetWidth;t.classList.add('lit');marimba(pick(PENTA),0,.12)})}})}
   if(!opts.length)return false;busy(m,5000);pick(opts)();return true}
+
+/* ================= install as an app ================= */
+let instEvt=null;
+const isStandalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+const canInstallHere=()=>!!document.querySelector('link[rel="manifest"]')&&!isStandalone()&&window.top===window;
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+function showInst(){const b=$('#instBtn');if(b)b.hidden=!canInstallHere()}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();instEvt=e;showInst()});
+window.addEventListener('appinstalled',()=>{instEvt=null;$('#instBtn').hidden=true;toast('🎉 اتثبّت! هتلاقي «بيتنا» على الشاشة')});
+$('#instBtn').addEventListener('click',async()=>{ac();
+  if(instEvt){instEvt.prompt();try{const r=await instEvt.userChoice;if(r.outcome==='accepted')$('#instBtn').hidden=true}catch(e){}instEvt=null;return}
+  const box=document.createElement('div');box.className='instbox';
+  box.innerHTML=isIOS?`<div class="ib"><h3>📲 ثبّتي «بيتنا»</h3><ol><li>افتحي اللينك من <b>Safari</b> (مش من واتساب)</li><li>دوسي زرار المشاركة <span class="ic2">⬆️</span> تحت في نص الشاشة</li><li>انزلي واختاري <b>«إضافة إلى الشاشة الرئيسية»</b> <span class="ic2">➕</span></li><li>دوسي <b>«إضافة»</b>.. وهتلاقي الأيقونة على الشاشة 🏠</li></ol><div class="arrow">👇</div><button type="button" class="btn big">فهمت 👍</button></div>`
+   :`<div class="ib"><h3>📲 ثبّتي «بيتنا»</h3><ol><li>افتحي اللينك من <b>Chrome</b></li><li>دوسي النقط التلاتة <span class="ic2">⋮</span> فوق</li><li>اختاري <b>«تثبيت التطبيق»</b> أو <b>«إضافة إلى الشاشة الرئيسية»</b></li></ol><button type="button" class="btn big">فهمت 👍</button></div>`;
+  document.body.appendChild(box);box.addEventListener('click',e=>{if(e.target===box||e.target.closest('button'))box.remove()})});
+showInst();
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
+['pagehide','visibilitychange'].forEach(ev=>window.addEventListener(ev,()=>{if(ev==='pagehide'||document.visibilityState==='hidden')save(true)}));
 
 /* ================= boot ================= */
 load();
